@@ -29,3 +29,4 @@ src/tsung/ts_wesync.erl
 src/tsung_controller/ts_config_wesync.erl
 src/tsung_percentile.pl
 tsung-1.0.dtd
+tags
