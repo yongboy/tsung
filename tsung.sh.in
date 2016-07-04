@@ -30,6 +30,7 @@ PGSQL_SERVER_IP=127.0.0.1
 PGSQL_SERVER_PORT=5432
 NAME=tsung
 CONTROLLER=tsung_controller
+CONTROLLER_EXTENDS=""
 SMP_DISABLE=true
 WARM_TIME=1
 MAX_PROCESS=250000
@@ -59,7 +60,7 @@ stop() {
 
 start() {
     echo "Starting Tsung"
-    $ERL $ERL_OPTS $ERL_RSH -noshell $PROTO_DIST $NAMETYPE $CONTROLLER -setcookie $COOKIE \
+    $ERL $ERL_OPTS $ERL_RSH -noshell $PROTO_DIST $NAMETYPE $CONTROLLER$CONTROLLER_EXTENDS -setcookie $COOKIE \
     -s tsung_controller \
     $EXTRA_LOAD_PATHS \
     -pa $TSUNGPATH -pa $CONTROLLERPATH \
@@ -76,7 +77,7 @@ start() {
 }
 
 debug() {
-    $ERL $ERL_OPTS $ERL_RSH $NAMETYPE $CONTROLLER $PROTO_DIST -setcookie $COOKIE  \
+    $ERL $ERL_OPTS $ERL_RSH $NAMETYPE $CONTROLLER$CONTROLLER_EXTENDS  $PROTO_DIST -setcookie $COOKIE  \
      -s tsung_controller \
      $EXTRA_LOAD_PATHS \
      -pa $TSUNGPATH -pa $CONTROLLERPATH \
@@ -147,7 +148,7 @@ usage() {
     echo "    -X <dir>      add additional erlang load paths (multiple -X arguments allowed)"
     echo "    -m <file>     write monitoring output on this file (default is tsung.log)"
     echo "                   (use - for standard output)"
-    echo "    -F            use long names (FQDN) for erlang nodes"
+    echo "    -F <ip>       use long names (FQDN) for erlang nodes with special IP, you can pass scan"
     echo "    -L <lifetime> SSL session lifetime (600sec by default)"
     echo "    -w <delay>    warmup delay (default is 1 sec)"
     echo "    -n            disable web GUI  (started by default on port 8091)"
@@ -159,7 +160,7 @@ usage() {
     exit
 }
 
-while getopts "6vhknf:l:d:r:i:Fsw:m:p:x:X:" Option
+while getopts "6vhknf:l:d:r:i:F:sw:m:p:x:X:" Option
 do
     case $Option in
         f) CONF_OPT_FILE=$OPTARG;;
@@ -182,7 +183,12 @@ do
         X) EXTRA_LOAD_PATHS="$EXTRA_LOAD_PATHS -pa $OPTARG";;
         r) ERL_RSH=" -rsh $OPTARG ";;
         6) PROTO_DIST=" -proto_dist inet6_tcp ";;
-        F) NAMETYPE="-name";;
+        F) NAMETYPE="-name"
+            SERVER_IP=$OPTARG
+            if [ "$SERVER_IP" != "" ]; then
+                CONTROLLER_EXTENDS="@$SERVER_IP"
+            fi
+            ;;
         L) SSL_SESSION_LIFETIME=$OPTARG;;
         w) WARM_TIME=$OPTARG;;
         s) SMP_DISABLE="false";;
